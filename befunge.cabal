@@ -2,16 +2,16 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a7ace0d431d122e080eacec965cbe1edfb74eb44c50cc7c1d7ee1876a82d2332
+-- hash: af127988920b5e9ed0a68c78b06839b4c9258162abcc8031130aeed152041ba8
 
 name:           befunge
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/befunge#readme>
 homepage:       https://github.com/githubuser/befunge#readme
 bug-reports:    https://github.com/githubuser/befunge/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2018 Author name here
+author:         Stephen Adams
+maintainer:     StephenAdams.Minn@gmail.com
+copyright:      2018 Stephen Adams
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -26,6 +26,8 @@ source-repository head
 
 library
   exposed-modules:
+      Language.Befunge.Lexer
+      Language.Befunge.Syntax
       Lib
   other-modules:
       Paths_befunge
@@ -33,6 +35,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , parsec
   default-language: Haskell2010
 
 executable befunge-exe
@@ -45,6 +48,7 @@ executable befunge-exe
   build-depends:
       base >=4.7 && <5
     , befunge
+    , parsec
   default-language: Haskell2010
 
 test-suite befunge-test
@@ -58,4 +62,5 @@ test-suite befunge-test
   build-depends:
       base >=4.7 && <5
     , befunge
+    , parsec
   default-language: Haskell2010
