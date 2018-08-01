@@ -1,6 +1,0 @@
-module Language.Befunge.Lexer where
-import Language.Befunge.Syntax
-import Text.ParserCombinators.Parsec hiding (token, tokens)
-
-type TokenPos = (BefungeOp, SourcePos)
-
