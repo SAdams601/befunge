@@ -1,4 +1,5 @@
 module Language.Befunge.Syntax where
+import Text.ParserCombinators.Parsec (SourcePos)
 
 data BefungeOp =
     Num Int
@@ -29,15 +30,23 @@ data BefungeOp =
   | ReadStdIOChar
   | End
   | NOp
-  
-type Coords = (Int, Int)
+  | Other Char
+  deriving (Show)
 
-data BefungeCell = Cell {
-    loc :: Coords
-  , op :: BefungeOp
-  , up :: BefungeCell
-  , down :: BefungeCell
-  , left :: BefungeCell
-  , right :: BefungeCell
+data BefungeCell =
+    Edge
+  | Cell {
+      loc :: SourcePos
+      , op :: BefungeOp
+      , up :: BefungeCell
+      , down :: BefungeCell
+      , left :: BefungeCell
+      , right :: BefungeCell
+      }
+
+data BefungeProgram = Prog {
+  origin :: BefungeCell
+  , maxRows :: Int
+  , maxCols :: Int
   }
 
