@@ -3,18 +3,19 @@ module Language.Befunge.Lexer
     tokenize
   , TokenPos
   , toChar
-  )where
+  , singleToken
+  ) where
 import Language.Befunge.Syntax
 import Text.ParserCombinators.Parsec hiding (token, tokens)
 import Text.Parsec.Error
 import Text.Parsec.Char
 import Data.Char (digitToInt)
-import Data.Either (partitionEithers)
+import Data.Either (partitionEithers, rights)
 
 type TokenPos = (BefungeOp, SourcePos)
 
 parsePos :: Parser BefungeOp -> Parser TokenPos
-parsePos p = (,) <$> p <*> getPosition
+parsePos p = (,) <$> p <*> (getPosition >>= (\ pos -> return $ incSourceColumn pos (-1)))
 
 toChar :: BefungeOp -> Char
 toChar (Other c) = c
@@ -52,21 +53,24 @@ opCharList = [
   , (NOp, ' ')
             ]
 
-numToken :: Parser TokenPos
-numToken = parsePos $ digit >>= (\ charD -> return $ Num (digitToInt charD))
+tupToParser :: (BefungeOp, Char) -> Parser BefungeOp
+tupToParser (con, c) = char c >> return con
 
-otherToken :: Parser TokenPos
-otherToken = parsePos $ satisfy (\c -> c `notElem` "\n\r") >>= (\ c -> return $ Other c)
+opParser :: Parser BefungeOp
+opParser = choice $
+  (numToken: otherParsers) ++ [otherToken]
+  where numToken = digit >>= (\ charD -> return $ Num (digitToInt charD))
+        otherToken = satisfy (\c -> c `notElem` "\n\r") >>= (\ c -> return $ Other c)
+        otherParsers = map tupToParser opCharList
 
 token :: Parser TokenPos
-token = choice $
-  (numToken: otherParsers) ++ [otherToken]
-  where otherParsers = map tupToParser opCharList
-        tupToParser :: (BefungeOp, Char) -> Parser TokenPos
-        tupToParser (con, c) = parsePos $ char c >> return con
+token = parsePos opParser
 
 tokens :: Parser [TokenPos]
 tokens = concat <$> many token `sepBy` endOfLine
 
 tokenize :: SourceName -> String -> Either ParseError [TokenPos]
 tokenize = runParser tokens ()
+
+singleToken :: Char -> BefungeOp
+singleToken c = (head.rights) [runParser opParser () "" [c]]

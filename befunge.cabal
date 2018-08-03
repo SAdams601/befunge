@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5f26bf4b5f3cd0857a3bb56e834144888290ba378af5fe18a7915b895f5585bc
+-- hash: 85ff6da57b03513657152394f00acde7494d09d4aae236fe7c3aa95075e18d7f
 
 name:           befunge
 version:        0.1.0.0
@@ -31,12 +31,17 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , mtl
     , parsec
+    , random
     , transformers
   exposed-modules:
+      Language.Befunge.Eval
       Language.Befunge.Lexer
       Language.Befunge.LocUtils
       Language.Befunge.Parser
+      Language.Befunge.Runner
+      Language.Befunge.Stack
       Language.Befunge.Syntax
       Lib
   other-modules:
@@ -52,7 +57,9 @@ executable befunge-exe
       base >=4.7 && <5
     , befunge
     , containers
+    , mtl
     , parsec
+    , random
     , transformers
   other-modules:
       Paths_befunge
@@ -68,7 +75,9 @@ test-suite befunge-test
       base >=4.7 && <5
     , befunge
     , containers
+    , mtl
     , parsec
+    , random
     , transformers
   other-modules:
       Paths_befunge
