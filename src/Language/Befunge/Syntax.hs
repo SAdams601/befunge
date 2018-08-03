@@ -31,7 +31,7 @@ data BefungeOp =
   | End
   | NOp
   | Other Char
-  deriving (Show)
+  deriving (Show, Eq)
 
 data BefungeCell =
     Edge
@@ -43,6 +43,20 @@ data BefungeCell =
       , left :: BefungeCell
       , right :: BefungeCell
       }
+    deriving Eq
+
+isLeftMostCell :: BefungeCell -> Bool
+isLeftMostCell cell = Edge == left cell
+             
+instance Show BefungeCell where
+  show Edge = "Edge"
+  show cell = let curr = show (op cell)
+                  row = show (right cell)
+                  rest = show (down cell) in
+              if isLeftMostCell cell
+              then "Edge " ++ curr ++ " " ++ row ++ "\n" ++ rest
+              else curr ++ " " ++ row
+
 
 data BefungeProgram = Prog {
   origin :: BefungeCell
@@ -50,3 +64,10 @@ data BefungeProgram = Prog {
   , maxCols :: Int
   }
 
+instance Show BefungeProgram where
+  show prog = show (origin prog)
+
+cellCount :: BefungeProgram -> Int
+cellCount prog = f (origin prog)
+  where f Edge = 0
+        f cell = 1 + f (right cell) + f (down cell)

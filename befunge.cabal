@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: af127988920b5e9ed0a68c78b06839b4c9258162abcc8031130aeed152041ba8
+-- hash: 5f26bf4b5f3cd0857a3bb56e834144888290ba378af5fe18a7915b895f5585bc
 
 name:           befunge
 version:        0.1.0.0
@@ -16,6 +16,7 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
+
 extra-source-files:
     ChangeLog.md
     README.md
@@ -25,42 +26,50 @@ source-repository head
   location: https://github.com/githubuser/befunge
 
 library
-  exposed-modules:
-      Language.Befunge.Lexer
-      Language.Befunge.Syntax
-      Lib
-  other-modules:
-      Paths_befunge
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , containers
     , parsec
+    , transformers
+  exposed-modules:
+      Language.Befunge.Lexer
+      Language.Befunge.LocUtils
+      Language.Befunge.Parser
+      Language.Befunge.Syntax
+      Lib
+  other-modules:
+      Paths_befunge
   default-language: Haskell2010
 
 executable befunge-exe
   main-is: Main.hs
-  other-modules:
-      Paths_befunge
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , befunge
+    , containers
     , parsec
+    , transformers
+  other-modules:
+      Paths_befunge
   default-language: Haskell2010
 
 test-suite befunge-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
-  other-modules:
-      Paths_befunge
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , befunge
+    , containers
     , parsec
+    , transformers
+  other-modules:
+      Paths_befunge
   default-language: Haskell2010

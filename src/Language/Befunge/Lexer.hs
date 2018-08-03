@@ -1,17 +1,25 @@
 module Language.Befunge.Lexer
   (
     tokenize
-  , TokenPos    
+  , TokenPos
+  , toChar
   )where
 import Language.Befunge.Syntax
 import Text.ParserCombinators.Parsec hiding (token, tokens)
-import Control.Applicative ((<*), (*>), (<*>), (<$>))
+import Text.Parsec.Error
+import Text.Parsec.Char
 import Data.Char (digitToInt)
+import Data.Either (partitionEithers)
 
 type TokenPos = (BefungeOp, SourcePos)
 
 parsePos :: Parser BefungeOp -> Parser TokenPos
 parsePos p = (,) <$> p <*> getPosition
+
+toChar :: BefungeOp -> Char
+toChar (Other c) = c
+toChar (Num i) = head . show $ i
+toChar o = snd . head $ filter (\ (op2, _) -> o == op2) opCharList
 
 opCharList :: [(BefungeOp, Char)]
 opCharList = [
@@ -48,7 +56,7 @@ numToken :: Parser TokenPos
 numToken = parsePos $ digit >>= (\ charD -> return $ Num (digitToInt charD))
 
 otherToken :: Parser TokenPos
-otherToken = parsePos $ anyChar >>= (\ c -> return $ Other c)
+otherToken = parsePos $ satisfy (\c -> c `notElem` "\n\r") >>= (\ c -> return $ Other c)
 
 token :: Parser TokenPos
 token = choice $
@@ -58,7 +66,7 @@ token = choice $
         tupToParser (con, c) = parsePos $ char c >> return con
 
 tokens :: Parser [TokenPos]
-tokens = many token
+tokens = concat <$> many token `sepBy` endOfLine
 
 tokenize :: SourceName -> String -> Either ParseError [TokenPos]
 tokenize = runParser tokens ()
