@@ -36,30 +36,42 @@ condMov d = do
     then return (d, 1)
     else return ((reflect d), 1)
 
-eval :: BefungeOp -> BefungeRunner ()
-eval (Num i) = pushR i
-eval Add = binOpR (+)
-eval Sub = binOpR (-)
-eval Mul = binOpR (*)
-eval Div = binOpR div
-eval Mod = binOpR mod
-eval Not = unOpR iNot
-eval Gt  = binOpR gt
-eval MvR = setIP (R,1)
-eval MvL = setIP (L,1) 
-eval MvU = setIP (U,1) 
-eval MvD = setIP (D,1)
-eval MvRand = mvRand
-eval PopMvR = (condMov R) >>= setIP
-eval PopMvD = (condMov D) >>= setIP
-eval Str = mov >> evalStr
-eval Dup = dup
-eval Swap = swap
-eval Pop = popR >> return ()
-eval PopPrnt = popR >>= (\ v -> liftIO $ print v)
-eval PopPrntChar = popR >>= (\ v -> liftIO $ print (chr v))
-eval Bridge = currentIP >>= (\ (d, _) -> setIP (d, 2))
-eval Put = do
+eval :: BefungeProgram -> BefungeRunner ()
+eval prog = run (origin prog)
+  where run :: BefungeCell -> BefungeRunner ()
+        run c = do
+          currOp <- currentOp
+          if currOp == End
+            then return ()
+            else do
+            evalStep currOp
+            mov
+            currentCell >>= run
+
+evalStep :: BefungeOp -> BefungeRunner ()
+evalStep (Num i) = pushR i
+evalStep Add = binOpR (+)
+evalStep Sub = binOpR (-)
+evalStep Mul = binOpR (*)
+evalStep Div = binOpR div
+evalStep Mod = binOpR mod
+evalStep Not = unOpR iNot
+evalStep Gt  = binOpR gt
+evalStep MvR = setIP (R,1)
+evalStep MvL = setIP (L,1) 
+evalStep MvU = setIP (U,1) 
+evalStep MvD = setIP (D,1)
+evalStep MvRand = mvRand
+evalStep PopMvR = (condMov R) >>= setIP
+evalStep PopMvD = (condMov D) >>= setIP
+evalStep Str = mov >> evalStr
+evalStep Dup = dup
+evalStep Swap = swap
+evalStep Pop = popR >> return ()
+evalStep PopPrnt = popR >>= (\ v -> liftIO $ print v)
+evalStep PopPrntChar = popR >>= (\ v -> liftIO $ print (chr v))
+evalStep Bridge = currentIP >>= (\ (d, _) -> setIP (d, 2))
+evalStep Put = do
   pos <- currentPos
   y <- popR
   x <- popR
@@ -68,7 +80,7 @@ eval Put = do
   let newOp = singleToken (chr v)
   setOp newOp
   moveToPos pos
-eval Get = do
+evalStep Get = do
   pos <- currentPos
   y <- popR
   x <- popR
@@ -76,20 +88,35 @@ eval Get = do
   currChar <- currentOp >>= \op -> return (toChar op)
   pushR (ord currChar)
   moveToPos pos
-eval ReadStdIO = do
+evalStep ReadStdIO = do
   liftIO $ putStrLn "Please enter a number: "
   (input :: Int) <- liftIO $ readLn
   pushR input
-eval ReadStdIOChar = do
+evalStep ReadStdIOChar = do
   liftIO $ putStrLn "Please enter a character: "
   (input :: Char) <- liftIO $ readLn
   pushR (ord input)
-eval NOp = return ()
-eval End = return ()
-eval _ = undefined
+evalStep NOp = return ()
+evalStep End = return ()
+evalStep _ = undefined
   
 mov :: BefungeRunner ()
-mov = undefined
+mov = do
+  (dir, mag) <- currentIP
+  case mag of
+    0 -> setIP (dir, 1)
+    n -> do
+      nextCell <- fmap (cellInDir dir) currentCell
+      case nextCell of
+        Edge -> wrap dir
+        _ -> stepDir (const nextCell) >> setIP (dir, (n-1))
+
+wrap :: Dir -> BefungeRunner ()
+wrap d = do
+  nextCell <- fmap (cellInDir d) currentCell
+  case nextCell of
+    Edge -> setIP (d, 1)
+    _ -> stepDir (cellInDir (reflect d)) >> wrap d
 
 evalStr :: BefungeRunner ()
 evalStr = do

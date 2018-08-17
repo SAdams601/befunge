@@ -59,6 +59,9 @@ currentOp = currentCell >>= \ l -> return (op l)
 currentPos :: BefungeRunner SourcePos
 currentPos = currentCell >>= \ cell -> return (loc cell)
 
+currentLnCol :: BefungeRunner (Int, Int)
+currentLnCol = currentPos >>= \ sp -> return $ (,) (sourceLine sp) (sourceColumn sp)
+
 currentIP :: BefungeRunner IP
 currentIP = get >>= \ st -> return (ip st)
   
@@ -103,3 +106,9 @@ moveRows 0 = return ()
 moveRows rws = if rws < 0
                 then stepDir left >> moveLines (rws+1)
                 else stepDir right >> moveLines (rws-1)
+
+cellInDir :: Dir -> BefungeCell -> BefungeCell
+cellInDir U c = up c
+cellInDir D c = down c
+cellInDir L c = left c
+cellInDir R c = right c
